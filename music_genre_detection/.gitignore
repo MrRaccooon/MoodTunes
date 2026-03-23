@@ -1,0 +1,16 @@
+# Dataset — never commit
+data/genres_original/
+data/features.csv
+
+# Trained model artefacts (large binary files)
+models/
+
+# Generated outputs
+outputs/
+
+# Python noise
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
