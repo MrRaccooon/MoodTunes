@@ -79,7 +79,7 @@ def train(n_estimators: int, test_size: float, random_state: int) -> None:
 
     # ── 6. Cross-validation (on training fold) ────────────────────────────────
     cv_scores = cross_val_score(clf, X_train, y_train, cv=5, scoring="accuracy")
-    print(f"  5-fold CV accuracy : {cv_scores.mean():.4f} ± {cv_scores.std():.4f}")
+    print(f"  5-fold CV accuracy : {cv_scores.mean():.4f} +/- {cv_scores.std():.4f}")
 
     # ── 7. Test set evaluation ────────────────────────────────────────────────
     y_pred = clf.predict(X_test)
@@ -93,12 +93,12 @@ def train(n_estimators: int, test_size: float, random_state: int) -> None:
 
     fig, ax = plt.subplots(figsize=(10, 8))
     disp.plot(ax=ax, cmap="Blues", colorbar=False)
-    ax.set_title(f"Confusion Matrix — Test Accuracy: {acc*100:.1f}%", fontsize=14)
+    ax.set_title(f"Confusion Matrix - Test Accuracy: {acc*100:.1f}%", fontsize=14)
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
     plt.savefig(CM_IMAGE_PATH, dpi=150)
     plt.close()
-    print(f"  Confusion matrix saved → {CM_IMAGE_PATH}")
+    print(f"  Confusion matrix saved -> {CM_IMAGE_PATH}")
 
     # ── 9. Feature importance (top 10) ───────────────────────────────────────
     importances = clf.feature_importances_
@@ -113,9 +113,9 @@ def train(n_estimators: int, test_size: float, random_state: int) -> None:
     joblib.dump(clf,    MODEL_PATH)
     joblib.dump(scaler, SCALER_PATH)
     joblib.dump(le,     ENCODER_PATH)
-    print(f"\nModel   saved → {MODEL_PATH}")
-    print(f"Scaler  saved → {SCALER_PATH}")
-    print(f"Encoder saved → {ENCODER_PATH}")
+    print(f"\nModel   saved -> {MODEL_PATH}")
+    print(f"Scaler  saved -> {SCALER_PATH}")
+    print(f"Encoder saved -> {ENCODER_PATH}")
 
 
 if __name__ == "__main__":
