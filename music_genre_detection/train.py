@@ -1,13 +1,14 @@
 """
 train.py
 --------
-Loads data/features.csv, trains a Random Forest classifier,
+Loads data/features.csv, trains a classifier (Random Forest or SVM),
 evaluates it, saves the model + scaler, and plots a confusion matrix.
 
 Usage
 -----
   python train.py
-  python train.py --n_estimators 200 --test_size 0.2
+  python train.py --model svm
+  python train.py --model rf --n_estimators 300 --test_size 0.2
 """
 
 import os
@@ -16,10 +17,11 @@ import numpy as np
 import pandas as pd
 import joblib
 import matplotlib
-matplotlib.use("Agg")          # non-interactive backend (safe for all envs)
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.metrics import (
@@ -43,7 +45,21 @@ def load_data(csv_path: str):
     return X, y
 
 
-def train(n_estimators: int, test_size: float, random_state: int) -> None:
+def _build_classifier(model_type: str, n_estimators: int, random_state: int):
+    if model_type == "svm":
+        print(f"\nTraining SVM  (C=10, kernel=rbf) ...")
+        return SVC(C=10, kernel="rbf", probability=True, random_state=random_state)
+    else:
+        print(f"\nTraining Random Forest  (n_estimators={n_estimators}) ...")
+        return RandomForestClassifier(
+            n_estimators=n_estimators,
+            max_depth=None,
+            random_state=random_state,
+            n_jobs=-1,
+        )
+
+
+def train(model_type: str, n_estimators: int, test_size: float, random_state: int) -> None:
     os.makedirs("models",  exist_ok=True)
     os.makedirs("outputs", exist_ok=True)
 
@@ -68,13 +84,7 @@ def train(n_estimators: int, test_size: float, random_state: int) -> None:
     X_test  = scaler.transform(X_test)
 
     # ── 5. Train model ────────────────────────────────────────────────────────
-    print(f"\nTraining Random Forest  (n_estimators={n_estimators}) ...")
-    clf = RandomForestClassifier(
-        n_estimators=n_estimators,
-        max_depth=None,
-        random_state=random_state,
-        n_jobs=-1,
-    )
+    clf = _build_classifier(model_type, n_estimators, random_state)
     clf.fit(X_train, y_train)
 
     # ── 6. Cross-validation (on training fold) ────────────────────────────────
@@ -100,14 +110,15 @@ def train(n_estimators: int, test_size: float, random_state: int) -> None:
     plt.close()
     print(f"  Confusion matrix saved -> {CM_IMAGE_PATH}")
 
-    # ── 9. Feature importance (top 10) ───────────────────────────────────────
-    importances = clf.feature_importances_
-    df_feat = pd.read_csv(FEATURES_CSV)
-    feature_names = df_feat.drop(columns=["label"]).columns.tolist()
-    top10_idx = np.argsort(importances)[::-1][:10]
-    print("\nTop-10 most important features:")
-    for rank, idx in enumerate(top10_idx, 1):
-        print(f"  {rank:2d}. {feature_names[idx]:25s}  {importances[idx]:.4f}")
+    # ── 9. Feature importance (RF only) ───────────────────────────────────────
+    if hasattr(clf, "feature_importances_"):
+        importances = clf.feature_importances_
+        df_feat = pd.read_csv(FEATURES_CSV)
+        feature_names = df_feat.drop(columns=["label"]).columns.tolist()
+        top10_idx = np.argsort(importances)[::-1][:10]
+        print("\nTop-10 most important features:")
+        for rank, idx in enumerate(top10_idx, 1):
+            print(f"  {rank:2d}. {feature_names[idx]:25s}  {importances[idx]:.4f}")
 
     # ── 10. Save artefacts ────────────────────────────────────────────────────
     joblib.dump(clf,    MODEL_PATH)
@@ -120,9 +131,11 @@ def train(n_estimators: int, test_size: float, random_state: int) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--model",        choices=["rf", "svm"], default="rf",
+                        help="Classifier type: rf (Random Forest) or svm (SVM RBF)")
     parser.add_argument("--n_estimators", type=int,   default=200)
     parser.add_argument("--test_size",    type=float, default=0.2)
     parser.add_argument("--random_state", type=int,   default=42)
     args = parser.parse_args()
 
-    train(args.n_estimators, args.test_size, args.random_state)
+    train(args.model, args.n_estimators, args.test_size, args.random_state)
