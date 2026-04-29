@@ -8,6 +8,9 @@ models/
 # Generated outputs
 outputs/
 
+# Temporary YouTube downloads
+samples/yt_temp*
+
 # Python noise
 __pycache__/
 *.pyc

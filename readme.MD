@@ -94,7 +94,7 @@ Stage 3: Prediction
 ## Project Structure
 
 ```
-music_genre_detection/
+MoodTunes/
 |
 |-- feature_extractor.py     # Extracts 72 audio features from a .wav file
 |-- build_dataset.py         # Walks GTZAN dataset, builds data/features.csv
@@ -107,6 +107,8 @@ music_genre_detection/
 |-- tune.py                  # Hyperparameter tuning with RandomizedSearchCV
 |-- learning_curves.py       # Plots learning curve (overfitting analysis)
 |-- evaluate_samples.py      # Batch-tests a folder of sample clips
+|-- requirements.txt         # Python dependencies
+|-- readme.MD                # This file
 |
 |-- data/
 |   |-- genres_original/     # GTZAN dataset (not committed, ~1.2 GB)
@@ -130,8 +132,6 @@ music_genre_detection/
 |   |-- learning_curve.png    # Train vs CV accuracy plot
 |
 |-- samples/                  # Test audio clips
-|-- requirements.txt          # Python dependencies
-|-- readme.MD                 # This file
 ```
 
 ---
@@ -148,7 +148,7 @@ music_genre_detection/
 
 ```bash
 git clone <repository-url>
-cd MoodTunes/music_genre_detection
+cd MoodTunes
 ```
 
 ### Step 2: Install dependencies
@@ -208,7 +208,7 @@ Or install system-wide from https://ffmpeg.org/download.html.
 
 ## Running the Pipeline
 
-Run these commands **in order** from the `music_genre_detection/` directory.
+Run these commands **in order** from the project root (`MoodTunes/`) directory.
 
 ### Step 1 -- Build the feature dataset (5-10 minutes)
 
@@ -394,18 +394,22 @@ consistency (classical) while others by variation (rock).
 
 ### YouTube Prediction Tests
 
+The YouTube predictor analyzes the **entire song** by splitting it into 30-second
+segments and averaging predictions across all segments, giving much more robust
+results than analyzing only the first 30 seconds.
+
 | Song | Artist | Predicted | Confidence | Correct |
 |------|--------|-----------|------------|---------|
 | Never Gonna Give You Up | Rick Astley | DISCO | 81.0% | Yes |
 | Nothing Else Matters | Metallica | ROCK | 46.4% | Yes |
 | Lose Yourself | Eminem | HIPHOP | 39.4% | Yes |
 | Fur Elise | Beethoven | CLASSICAL | 72.8% | Yes |
+| Smells Like Teen Spirit | Nirvana | ROCK | 30.8% | Yes |
 | Bohemian Rhapsody | Queen | REGGAE | 22.9% | No |
 | The Thrill Is Gone | BB King | POP | 52.4% | No |
 
-4 out of 6 correct. Misclassifications happen because the model only analyzes
-the first 30 seconds, and some songs are genre-defying (Bohemian Rhapsody starts
-as a piano ballad, not rock).
+5 out of 7 correct. Misclassifications happen with genre-defying songs
+(Bohemian Rhapsody blends opera, ballad, and rock in one song).
 
 ---
 
